@@ -5,7 +5,8 @@
 import asyncore
 import asynchat
 import socket
-
+import logging
+from stmp_log import STMPLog
 
 ##
 # @brief
@@ -14,10 +15,23 @@ class ASTMPServer(asyncore.dispatcher):
     def __init__(self, json_config):
         asyncore.dispatcher.__init__(self)
         self.config = json_config
+
+    def setup():
+        # 准备日志对象
+        logging.basicConfig(format=self.config["log_format"], \
+                filename=self.config["log_file"])
+        self.logger = logging.getLogger(self.config["server_name"])
+        # 准备监听socket
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.set_reuse_addr()
         self.bind((self.config["host"], self.config["port"] ))
         self.listen(self.config["backlog"])
+        #
+
+    def run(self):
+        self.setup()
+        asynchat.asyncore.loop()
+
 
     ##
     # @brief
@@ -29,28 +43,30 @@ class ASTMPServer(asyncore.dispatcher):
         if pair is not None:
             sock, addr = pair
             # log
-            handler = ASTMPHandler(sock, addr, log, json_config)
+            handler = ASTMPHandler(sock, addr, json_config)
 
 
 ##
 # @brief
 class ASTMPHandler(asynchat.async_chat):
     """docstring for STMPHandler"""
-    def __init__(self, sock, addr, log, json_config):
+    def __init__(self, sock, addr, json_config):
         asynchat.async_chat.__init__(self, sock=sock)
+        # 创建STMP 日志对象
+        self.log = STMPLog(logging.getLogger(self.config["server_name"]), self.addr)
         self.addr = addr
-        #self.sessions = sessions
         self.ibuffer = []
-        self.log = log
         self.config = json_config
         # 服务器回应数据很小
         self.ac_out_buffer_size = 512
 
+        self.init()
         # 初始终止条件
         # self.set_terminator("\r\n")
 
     def init(self):
         """docstring for init"""
+        self.log.write("begin")
         self.session = Qsession(self.log)
         self.max_buf_size = self.config["buf_size"]
         # ASTMPHandler 的默认状态是一直接收数据, 当ibuffer中数据大于限定值时,
@@ -89,6 +105,11 @@ class ASTMPHandler(asynchat.async_chat):
         if is_quit:
         # 执行关闭, 效果是待发送数据发送完毕, 则关闭对应链接
             self.close_when_done()
+
+    def close_when_done(self):
+        self.log.write("end")
+        super(ASTMPHandler, self).close_when_done()
+
 
 
 if __name__ == "__main__":
