@@ -11,6 +11,7 @@ import socket
 import threading
 import logging
 from stmp_log import STMPLog
+from qsession import Qsession
 
 HOST = "127.0.0.1"
 PORT = 8080
@@ -23,7 +24,7 @@ class TSTMPServer:
         self.config = json_config
         self.setup()
 
-    def setup():
+    def setup(self):
         # 准备日志对象
         logging.basicConfig(format=self.config["log_format"], \
                 filename=self.config["log_file"])
@@ -34,7 +35,7 @@ class TSTMPServer:
         listenfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         listenfd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         listenfd.bind((self.config["host"], self.config["port"]))
-        listenfd.listenfd(self.config["backlog"])
+        listenfd.listen(self.config["backlog"])
         return listenfd
 
 
@@ -43,7 +44,7 @@ class TSTMPServer:
     #
     # @return
     def run(self):
-        listenfd = create_listenfd()
+        listenfd = self.create_listenfd()
         while True:
             pair = listenfd.accept()
             if pair is not None:

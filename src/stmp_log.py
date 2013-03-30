@@ -1,19 +1,18 @@
 #!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 #
 
 
 from logging import Logger
-
+import pdb
 
 class STMPLog:
     """docstring for STMPLog"""
-    def __init__(self, logger, clientip):
+    def __init__(self, logger, addr):
         self.log = logger
-        self.extra = {'clientip': clientip }
+        self.prefix = "{0}:{1}".format(addr[0], addr[1])
 
     def write(self, msg):
-        self.log.warning(msg)
+        self.log.warning(prefix + msg)
 
 
 

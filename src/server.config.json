@@ -6,5 +6,8 @@
     "timeout"    :      30,
     "server_name":      "stmp",
     "log_file"   :      "./log.txt",
-    "log_format" :      "%(asctime)-15s %(clientip)s %(message)s"
+    "log_format" :      "%(asctime)-15s %(message)s",
+    "log_format_old" :      "%(asctime)-15s %(clientip)s %(message)s",
+    "mail_dir"   :      "./mails/",
+    "message"    :      "./message.json"
 }
