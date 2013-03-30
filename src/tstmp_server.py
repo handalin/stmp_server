@@ -39,6 +39,7 @@ class TSTMPServer:
 
 
 def stmp_machine(connfd, addr):
+
     print "new in "
 
 def main():
