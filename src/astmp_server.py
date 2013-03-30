@@ -71,7 +71,7 @@ class ASTMPHandler(asynchat.async_chat):
 
     def init(self):
         """docstring for init"""
-        self.log.write("begin")
+        self.log.write(self.message["enter"])
         self.session = Qsession(self.log)
         self.timeout = self.config["timeout"]
         self.max_buf_size = self.config["bufsize"]
@@ -90,7 +90,6 @@ class ASTMPHandler(asynchat.async_chat):
     def collect_incoming_data(self, data):
         """docstring for collect_incoming_data"""
         self.ibuffer.append(data)
-#        self.found_terminator()
         if len(self.ibuffer) >= self.max_buf_size:
             self.found_terminator()
 
@@ -113,21 +112,21 @@ class ASTMPHandler(asynchat.async_chat):
         # 执行关闭, 效果是待发送数据发送完毕, 则关闭对应链接
             self.close_when_done()
 
-    def close_when_done(self):
-        self.log.write("end")
-        super(ASTMPHandler, self).close_when_done()
 
     def handle_close(self):
-        self.log.write("用户退出")
+        self.log.write(self.message["exit"])
         super(ASTMPHandler, self).handle_close()
 
     def handle_read(self):
+        # timeout 只有在接收用户数据时候需要考虑
         self.settimeout(self.timeout)
         try:
-            super(ASTMPHandler, self).handle_read()
+            ret = super(ASTMPHandler, self).handle_read()
         except socket.timeout:
-            self.log.write("")
+            self.log.write("timeout")
             self.close_when_done()
+        self.settimeout(None)
+        return ret
 
 
 if __name__ == "__main__":

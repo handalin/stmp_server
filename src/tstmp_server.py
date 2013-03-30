@@ -13,10 +13,6 @@ import logging
 from stmp_log import STMPLog
 from qsession import Qsession
 
-HOST = "127.0.0.1"
-PORT = 8080
-BACKLOG = 5
-
 
 class TSTMPServer:
     def __init__(self, json_config):
@@ -29,6 +25,7 @@ class TSTMPServer:
         logging.basicConfig(format=self.config["log_format"], \
                 filename=self.config["log_file"])
         self.logger = logging.getLogger(self.config["server_name"])
+        self.message = json.load(open(self.config["message"]))
 
 
     def create_listenfd(self):
@@ -50,7 +47,7 @@ class TSTMPServer:
             if pair is not None:
                 conn, addr = pair
                 log = STMPLog(self.logger, addr)
-                stmp_machine = STMPMachine(conn, addr, log, self.config)
+                stmp_machine = STMPMachine(conn, addr, log, self.message, self.config)
                 worker = threading.Thread(target = stmp_machine.run, args = (stmp_machine, ))
                 worker.start()
                 # 主线程不需要 close conn ?
@@ -59,10 +56,11 @@ class TSTMPServer:
 
 class STMPMachine:
     """docstring for STMPMachine"""
-    def __init__(self, conn, addr, log, json_config):
+    def __init__(self, conn, addr, log, message, json_config):
         self.conn = conn
         self.addr = addr
         self.log  = log
+        self.message = message
         self.config  = json_config
         self.session = Qsession(log)
         self.timeout = self.config["timeout"]
@@ -72,12 +70,15 @@ class STMPMachine:
         self.send(msg)
 
     def read(self):
+        # timeout 只有在接收用户数据时候需要考虑
         self.conn.settimeout(self.timeout)
         try:
             data = self.conn.recv(bufsize)
         except socket.timeout:
             # 直接设置为None, data中应该没有数据??
+            self.log.write(self.message["timeout"])
             data = None
+        self.conn.settimeout(None)
         return data
 
     def close(self):
@@ -85,20 +86,17 @@ class STMPMachine:
 
 
     def run(self):
-        is_close = True
-        bye_msg = None
-        while is_close:
+        self.log.write(self.message["enter"])
+        is_continue = True
+        while is_continue:
             data = self.read()
+            # read None 意味着超时
             if data is None:
-                bye_msg = "用户长时间无响应, 强制关闭连接"
                 break
-            response, is_quit = self.session.feed(data)
+            response, is_continue = self.session.feed(data)
             if response is not None:
                 self.write(response)
-            if is_quit:
-                bye_msg = "用户正常退出，关闭连接"
-                break
-        self.log.write(bye_msg)
+        self.log.write(self.message["exit"])
         self.close()
 
 
