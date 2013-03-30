@@ -1,0 +1,13 @@
+{
+    "host"       :      "127.0.0.1",
+    "port"       :      8080,
+    "backlog"    :      5,
+    "bufsize"    :      1024,
+    "timeout"    :      30,
+    "server_name":      "stmp",
+    "log_file"   :      "./log.txt",
+    "log_format" :      "%(asctime)-15s %(message)s",
+    "log_format_old" :      "%(asctime)-15s %(clientip)s %(message)s",
+    "mail_dir"   :      "./mails/",
+    "message"    :      "./message.json"
+}
