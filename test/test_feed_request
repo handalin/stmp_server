@@ -1,0 +1,13 @@
+helo xxx
+mail from: 10000@qq.com
+rcpt to: xx@qq.com
+data
+From: 10000@qq.com
+To: xx@qq.com
+Subject: this is subject
+
+<This is content>
+
+.
+quit
+

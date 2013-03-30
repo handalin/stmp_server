@@ -15,7 +15,7 @@ from qsession import Qsession
 
 class QsessionTest(unittest.TestCase):
     """docstring for QsessionTest"""
-    def setup(self):
+    def setUp(self):
         """docstring for setup"""
         log = open("./test.log", "w")
         self.session = Qsession(log)
@@ -24,8 +24,8 @@ class QsessionTest(unittest.TestCase):
         """docstring for test_writeFile"""
         self.session.filename = "session_test"
         msg = "QSESSION TEST"
-        self.mail_content = msg
-        self.writeFile()
+        self.session.mail_content = msg
+        self.session.writeFile()
         with open(self.session.filename) as stream:
             for line in stream.readlines():
                 self.assertEqual(line, msg, \
@@ -48,8 +48,8 @@ class QsessionTest(unittest.TestCase):
         # format:  cmd  session_value  data  expected_ret
         with open(filename, "r") as stream:
             for line in stream.readlines():
-                items = line.split()
-                items = map(items, lambda x: x.strip())
+                items = line.split(",")
+                items = map(lambda x: x.strip(), items)
                 cmd = items[0]
                 if cmd == "0":
                     self.session.mail_from = items[1]
@@ -68,17 +68,15 @@ class QsessionTest(unittest.TestCase):
 
     def test_feed(self):
         """docstring for test_feed"""
-        infile  = "test_feed_data"
+        infile  = "test_feed_request"
         outfile = "test_feed_response"
         with open(infile, "r") as instream:
             with open(outfile, "r") as outstream:
-                data = instream.read().split("\r\n")
-                response = outstream.read().split()
-
-
-
-
-
+                request = map(lambda x: x+"\r\n", instream.read().split("\r\n"))
+                response = outstream.read().split("\n")
+                for i in range(len(request)):
+                    ret = self.session.feed(request[i])
+                    self.assertEqual(ret[0], response[i])
 
 
 
