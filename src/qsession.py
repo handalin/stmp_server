@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import os
+import time, re
 class Qsession(object):
   def __init__( self, LOG ):
     self.stat = 0 # waiting for 'helo'
@@ -21,8 +22,10 @@ class Qsession(object):
     f.close()
 
   def is_addr_valid( self, addr ):
-    x = addr.split('@')
-    return x and x[1].split('.')
+    if re.match(r'[\w_]+@[\w_]+\.[\w_]+', addr):
+      return True
+    else :
+      return False
   
   def checkFormal(self, data, cnt):
     if cnt == 0:
@@ -43,11 +46,9 @@ class Qsession(object):
     if self.stat == 0 :
       if data[:4] == "helo":
         self.stat += 1
-        self.filename = 'mails/' + data[5:]
         back_msg = "220 QQMail Ver 1.0"
-        # check the file name
-        while os.path.isfile( self.filename ):
-          self.filename += '#'
+        self.filename = 'mails/' + data[5:] + '-' + time.ctime().replace(' ', '-' )
+
       else :
         back_msg = "502 Error\nTips:Log on frist. ( 'helo yourname' )"
 
