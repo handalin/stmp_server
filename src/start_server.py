@@ -8,14 +8,18 @@ from astmp_server import ASTMPServer
 from tstmp_server import TSTMPServer
 import json
 import daemon
+import pdb
 
 JSON_CONFIG = "server.config.json"
 
 def main():
-    config = json.load(open(JSON_CONFIG, "r"))
+    #pdb.set_trace()
+    config = json.load(open(JSON_CONFIG))
     server = ASTMPServer(config)
     # server = TSTMPServer(config)
+    server.run()
     with daemon.DaemonContext():
+        pdb.set_trace()
         server.run()
 
 

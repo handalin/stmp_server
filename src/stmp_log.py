@@ -12,7 +12,7 @@ class STMPLog:
         self.log = logger
         self.extra = {'clientip': clientip }
 
-    def write(msg):
+    def write(self, msg):
         self.log.warning(msg)
 
 

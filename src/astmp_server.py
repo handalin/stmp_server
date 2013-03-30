@@ -6,6 +6,7 @@ import asyncore
 import asynchat
 import socket
 import logging
+import pdb
 from stmp_log import STMPLog
 
 ##
@@ -16,7 +17,7 @@ class ASTMPServer(asyncore.dispatcher):
         asyncore.dispatcher.__init__(self)
         self.config = json_config
 
-    def setup():
+    def setup(self):
         # 准备日志对象
         logging.basicConfig(format=self.config["log_format"], \
                 filename=self.config["log_file"])
@@ -30,7 +31,7 @@ class ASTMPServer(asyncore.dispatcher):
 
     def run(self):
         self.setup()
-        asynchat.asyncore.loop()
+        asyncore.loop()
 
 
     ##
@@ -43,7 +44,7 @@ class ASTMPServer(asyncore.dispatcher):
         if pair is not None:
             sock, addr = pair
             # log
-            handler = ASTMPHandler(sock, addr, json_config)
+            handler = ASTMPHandler(sock, addr, self.config)
 
 
 ##
@@ -53,10 +54,10 @@ class ASTMPHandler(asynchat.async_chat):
     def __init__(self, sock, addr, json_config):
         asynchat.async_chat.__init__(self, sock=sock)
         # 创建STMP 日志对象
-        self.log = STMPLog(logging.getLogger(self.config["server_name"]), self.addr)
         self.addr = addr
         self.ibuffer = []
         self.config = json_config
+        self.log = STMPLog(logging.getLogger(self.config["server_name"]), self.addr)
         # 服务器回应数据很小
         self.ac_out_buffer_size = 512
 
